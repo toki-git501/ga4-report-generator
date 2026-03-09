@@ -1,6 +1,9 @@
 [server]
 headless = true
 
+[client]
+toolbarMode = "minimal"
+
 [theme]
 primaryColor = "#1A6FAB"
 backgroundColor = "#F5F8FC"

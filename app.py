@@ -50,6 +50,10 @@ st.markdown("""
     .main {
         background-color: #F5F8FC;
     }
+    /* Streamlitのフッター・メニューを非表示 */
+    footer {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+    header[data-testid="stHeader"] {visibility: hidden;}
     .stButton>button {
         background-color: #1A6FAB;
         color: white;
