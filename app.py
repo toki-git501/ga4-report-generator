@@ -33,7 +33,7 @@ def icon_img_tag(path, size=28):
 def display_pdf(pdf_bytes):
     """PDFをプレビュー表示する"""
     from streamlit_pdf_viewer import pdf_viewer
-    pdf_viewer(pdf_bytes, width=900, height=1000)
+    pdf_viewer(pdf_bytes, width=700)
 
 # ─────────────────────────────────────────────────────
 # Streamlit UI 設定
@@ -44,7 +44,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# カスタムCSS（MOCALカラー）
+# カスタムCSS（MOCALカラー + ファイルアップローダー日本語化）
 st.markdown("""
     <style>
     .main {
@@ -65,6 +65,46 @@ st.markdown("""
         width: 100%;
         height: 3em;
         font-weight: bold;
+    }
+    /* ファイルアップローダーの英語テキストを日本語に置換 */
+    [data-testid="stFileUploaderDropzone"] div:has(> small) div:first-child {
+        visibility: hidden;
+        position: relative;
+        height: 1.2em;
+    }
+    [data-testid="stFileUploaderDropzone"] div:has(> small) div:first-child::after {
+        content: "ここにファイルをドラッグ＆ドロップ";
+        visibility: visible;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    [data-testid="stFileUploaderDropzone"] small {
+        visibility: hidden;
+        position: relative;
+        height: 1.2em;
+        display: inline-block;
+    }
+    [data-testid="stFileUploaderDropzone"] small::after {
+        content: "ファイルサイズ上限: 200MB";
+        visibility: visible;
+        position: absolute;
+        top: 0;
+        left: 0;
+        white-space: nowrap;
+    }
+    [data-testid="stFileUploaderDropzone"] button {
+        visibility: hidden;
+        position: relative;
+    }
+    [data-testid="stFileUploaderDropzone"] button::after {
+        content: "ファイルを選択";
+        visibility: visible;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        white-space: nowrap;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -111,27 +151,23 @@ with col2:
     if uploaded_csv is not None:
         st.success("CSVファイルが読み込めました！")
 
+        # session_stateでPDF生成結果を保持（ボタン押下後も消えないように）
         if st.button("🚀 PDFレポートを生成する"):
             with st.spinner("レポートを生成中です。しばらくお待ちください..."):
                 try:
-                    # 一時ディレクトリにファイルを保存
                     with tempfile.TemporaryDirectory() as tmp_dir:
-                        # CSV保存
                         csv_path = os.path.join(tmp_dir, "input.csv")
                         with open(csv_path, "wb") as f:
                             f.write(uploaded_csv.getbuffer())
 
-                        # ロゴ保存（あれば）
                         logo_path = None
                         if uploaded_logo:
                             logo_path = os.path.join(tmp_dir, "logo.png")
                             with open(logo_path, "wb") as f:
                                 f.write(uploaded_logo.getbuffer())
 
-                        # 出力パス
                         output_pdf_path = os.path.join(tmp_dir, "report.pdf")
 
-                        # レポート生成実行
                         if "スタンダード" in report_type:
                             generate_report(
                                 csv_path,
@@ -149,29 +185,37 @@ with col2:
                                 logo_path=logo_path
                             )
 
-                        # 生成されたPDFを読み込む
                         with open(output_pdf_path, "rb") as pdf_file:
-                            pdf_data = pdf_file.read()
+                            st.session_state['pdf_data'] = pdf_file.read()
 
-                        st.balloons()
-                        st.success("レポートの生成が完了しました！")
-
-                        # ダウンロードボタン
-                        st.download_button(
-                            label="PDFをダウンロードする",
-                            data=pdf_data,
-                            file_name=f"GA4レポート_{company_name}_{staff_name}.pdf",
-                            mime="application/pdf"
-                        )
-
-                        # プレビュー表示（画面下部に大きく表示）
-                        st.divider()
-                        st.subheader("レポートプレビュー")
-                        display_pdf(pdf_data)
+                    st.session_state['pdf_ready'] = True
+                    st.rerun()
                 except Exception as e:
                     st.error(f"エラーが発生しました: {e}")
+
+        # 生成済みPDFがあれば表示
+        if st.session_state.get('pdf_ready'):
+            pdf_data = st.session_state['pdf_data']
+            st.success("レポートの生成が完了しました！")
+
+            st.download_button(
+                label="📥 PDFをダウンロードする",
+                data=pdf_data,
+                file_name=f"GA4レポート_{company_name}_{staff_name}.pdf",
+                mime="application/pdf"
+            )
     else:
         st.info("CSVファイルをアップロードしてください。")
+        # CSVが外されたらPDF状態もクリア
+        if 'pdf_ready' in st.session_state:
+            del st.session_state['pdf_ready']
+            del st.session_state['pdf_data']
+
+# プレビュー表示（カラムの外＝全幅で表示）
+if st.session_state.get('pdf_ready'):
+    st.divider()
+    st.subheader("レポートプレビュー")
+    display_pdf(st.session_state['pdf_data'])
 
 st.divider()
 st.caption("© 2026 MOCAL株式会社 | GA4 Report Automation")
