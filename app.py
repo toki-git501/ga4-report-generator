@@ -50,10 +50,22 @@ st.markdown("""
     .main {
         background-color: #F5F8FC;
     }
-    /* Streamlitのフッター・メニューを非表示 */
+    /* Streamlitのフッター・メニュー・Cloud管理UIを非表示 */
     footer {visibility: hidden;}
     #MainMenu {visibility: hidden;}
     header[data-testid="stHeader"] {visibility: hidden;}
+    .viewerBadge_container__r5tak {display: none !important;}
+    .stActionButton {display: none !important;}
+    [data-testid="manage-app-button"] {display: none !important;}
+    .styles_viewerBadge__CvC9N {display: none !important;}
+    ._profileContainer_gzau3_53 {display: none !important;}
+    ._profilePreview_gzau3_63 {display: none !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
+    .st-emotion-cache-h4xjwg {display: none !important;}
+    .ea3mdgi5 {display: none !important;}
+    div[class*="stDeployButton"] {display: none !important;}
+    div[class*="StatusWidget"] {display: none !important;}
+    button[kind="manage"] {display: none !important;}
     .stButton>button {
         background-color: #1A6FAB;
         color: white;
