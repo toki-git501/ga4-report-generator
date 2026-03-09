@@ -5,3 +5,4 @@ reportlab
 japanize-matplotlib
 pillow
 numpy
+setuptools
