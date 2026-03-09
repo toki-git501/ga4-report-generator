@@ -1,0 +1,7 @@
+streamlit
+pandas
+matplotlib
+reportlab
+japanize-matplotlib
+pillow
+numpy
