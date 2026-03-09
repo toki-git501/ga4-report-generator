@@ -31,10 +31,9 @@ def icon_img_tag(path, size=28):
     return ""
 
 def display_pdf(pdf_bytes):
-    """PDFをbase64エンコードしてiframeで表示する"""
-    base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="1000" type="application/pdf"></iframe>'
-    st.markdown(pdf_display, unsafe_allow_html=True)
+    """PDFをプレビュー表示する"""
+    from streamlit_pdf_viewer import pdf_viewer
+    pdf_viewer(pdf_bytes, width=900, height=1000)
 
 # ─────────────────────────────────────────────────────
 # Streamlit UI 設定

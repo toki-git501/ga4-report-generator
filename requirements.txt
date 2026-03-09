@@ -6,3 +6,4 @@ japanize-matplotlib
 pillow
 numpy
 setuptools
+streamlit-pdf-viewer
