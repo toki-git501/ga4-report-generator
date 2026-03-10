@@ -145,7 +145,7 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 company_name = st.sidebar.text_input("会社名", value="", placeholder="入力例）ABC株式会社")
-staff_name = st.sidebar.text_input("担当者名", value="", placeholder="入力例）山田 太郎")
+staff_name = st.sidebar.text_input("担当者名", value="", placeholder="入力例）サンプル 太郎")
 
 st.sidebar.divider()
 report_type = st.sidebar.radio(
