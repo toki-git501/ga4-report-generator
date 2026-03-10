@@ -141,8 +141,8 @@ st.sidebar.markdown(
     f'<h2 style="display:flex; align-items:center;">{_setting_icon}レポート設定</h2>',
     unsafe_allow_html=True
 )
-company_name = st.sidebar.text_input("会社名", value="")
-staff_name = st.sidebar.text_input("担当者名", value="")
+company_name = st.sidebar.text_input("会社名", value="", placeholder="ABC株式会社")
+staff_name = st.sidebar.text_input("担当者名", value="", placeholder="山田 太郎")
 
 st.sidebar.divider()
 report_type = st.sidebar.radio(
