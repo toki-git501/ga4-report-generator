@@ -66,6 +66,8 @@ st.markdown("""
     div[class*="stDeployButton"] {display: none !important;}
     div[class*="StatusWidget"] {display: none !important;}
     button[kind="manage"] {display: none !important;}
+    /* プレースホルダーをより薄いグレーに */
+    input::placeholder {color: #C8D0D8 !important; opacity: 1 !important;}
     .stButton>button {
         background-color: #1A6FAB;
         color: white;
@@ -141,8 +143,8 @@ st.sidebar.markdown(
     f'<h2 style="display:flex; align-items:center;">{_setting_icon}レポート設定</h2>',
     unsafe_allow_html=True
 )
-company_name = st.sidebar.text_input("会社名", value="", placeholder="ABC株式会社")
-staff_name = st.sidebar.text_input("担当者名", value="", placeholder="山田 太郎")
+company_name = st.sidebar.text_input("会社名", value="", placeholder="入力例）ABC株式会社")
+staff_name = st.sidebar.text_input("担当者名", value="", placeholder="入力例）山田 太郎")
 
 st.sidebar.divider()
 report_type = st.sidebar.radio(
