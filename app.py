@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import tempfile
 import base64
+from datetime import datetime
 from report_logic import generate_report
 from report_logic_advanced import generate_report as generate_report_advanced
 
@@ -219,7 +220,7 @@ with col2:
             st.download_button(
                 label="📥 PDFをダウンロードする",
                 data=pdf_data,
-                file_name=f"GA4レポート_{company_name}_{staff_name}.pdf",
+                file_name=f"GA4レポート_{company_name}_{datetime.now().strftime('%Y%m%d')}.pdf",
                 mime="application/pdf"
             )
     else:
