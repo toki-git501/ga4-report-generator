@@ -61,16 +61,16 @@ st.markdown("""
     .styles_viewerBadge__CvC9N {display: none !important;}
     ._profileContainer_gzau3_53 {display: none !important;}
     ._profilePreview_gzau3_63 {display: none !important;}
-    [data-testid="stStatusWidget"] {display: none !important;}
-    div[data-testid="stStatusWidget"] {display: none !important;}
-    [data-testid="stDecoration"] {display: none !important;}
-    #stDecoration {display: none !important;}
+    [data-testid="stStatusWidget"] {display: none !important; visibility: hidden !important; opacity: 0 !important; width: 0 !important; height: 0 !important; pointer-events: none !important;}
+    div[data-testid="stStatusWidget"] {display: none !important; visibility: hidden !important; opacity: 0 !important; width: 0 !important; height: 0 !important; pointer-events: none !important;}
+    [data-testid="stDecoration"] {display: none !important; visibility: hidden !important; opacity: 0 !important; width: 0 !important; height: 0 !important; pointer-events: none !important;}
+    #stDecoration {display: none !important; visibility: hidden !important; opacity: 0 !important; width: 0 !important; height: 0 !important; pointer-events: none !important;}
     /* 右下の外部リンクバッジ（GitHub / Streamlit）を強制的に無効化 */
     [data-testid="stDecoration"] a[href*="streamlit.io"] {display: none !important;}
     [data-testid="stStatusWidget"] a[href*="streamlit.io"] {display: none !important;}
     [data-testid="stStatusWidget"] a[href*="github.com"] {display: none !important;}
-    [data-testid="stStatusWidget"] a {display: none !important;}
-    [data-testid="stStatusWidget"] * {pointer-events: none !important;}
+    [data-testid="stStatusWidget"] a {display: none !important; pointer-events: none !important;}
+    [data-testid="stStatusWidget"] * {display: none !important; pointer-events: none !important;}
     .st-emotion-cache-h4xjwg {display: none !important;}
     .ea3mdgi5 {display: none !important;}
     div[class*="stDeployButton"] {display: none !important;}
