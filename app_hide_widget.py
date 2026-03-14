@@ -65,6 +65,12 @@ st.markdown("""
     div[data-testid="stStatusWidget"] {display: none !important;}
     [data-testid="stDecoration"] {display: none !important;}
     #stDecoration {display: none !important;}
+    /* 右下の外部リンクバッジ（GitHub / Streamlit）を強制的に無効化 */
+    [data-testid="stDecoration"] a[href*="streamlit.io"] {display: none !important;}
+    [data-testid="stStatusWidget"] a[href*="streamlit.io"] {display: none !important;}
+    [data-testid="stStatusWidget"] a[href*="github.com"] {display: none !important;}
+    [data-testid="stStatusWidget"] a {display: none !important;}
+    [data-testid="stStatusWidget"] * {pointer-events: none !important;}
     .st-emotion-cache-h4xjwg {display: none !important;}
     .ea3mdgi5 {display: none !important;}
     div[class*="stDeployButton"] {display: none !important;}
