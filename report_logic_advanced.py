@@ -148,12 +148,18 @@ def parse_ga4_csv(filepath: str) -> dict:
     # 高度解析版で追加
     df_retention = read_section(r'日付,0 週目,1 週目')
     df_country   = read_section(r'国,アクティブ ユーザー')
+    # GA4の簡易スナップショット形式（1行サマリ）
+    df_snapshot = read_section(
+        r'アクティブ ユーザー,新規ユーザー数,アクティブ ユーザーあたりの平均エンゲージメント時間,イベント数'
+    )
 
     # ─ KPI集計 ─
     kpis = {}
 
     if df_trend is not None and '30 日' in df_trend.columns:
         kpis['active_users'] = int(df_trend['30 日'].iloc[-1])
+    elif df_snapshot is not None and len(df_snapshot) > 0:
+        kpis['active_users'] = int(df_snapshot.iloc[0, 0])
     elif df_active is not None:
         kpis['active_users'] = int(df_active.iloc[:, 1].sum())
     else:
@@ -161,6 +167,8 @@ def parse_ga4_csv(filepath: str) -> dict:
 
     if df_new is not None:
         kpis['new_users'] = int(df_new.iloc[:, 1].sum())
+    elif df_snapshot is not None and len(df_snapshot) > 0:
+        kpis['new_users'] = int(df_snapshot.iloc[0, 1])
     elif df_ch_new is not None:
         kpis['new_users'] = int(df_ch_new.iloc[:, 1].sum())
     else:
@@ -168,12 +176,20 @@ def parse_ga4_csv(filepath: str) -> dict:
 
     if df_ch_ses is not None:
         kpis['sessions'] = int(df_ch_ses.iloc[:, 1].sum())
+        kpis['sessions_missing'] = False
     else:
         kpis['sessions'] = 0
+        kpis['sessions_missing'] = True
 
     if df_engage is not None:
         avg_sec = df_engage.iloc[:, 1].mean()
         kpis['avg_engage_sec'] = float(avg_sec)
+        m = int(avg_sec // 60)
+        s = int(avg_sec % 60)
+        kpis['avg_engage_str'] = f"{m}分{s:02d}秒"
+    elif df_snapshot is not None and len(df_snapshot) > 0:
+        avg_sec = float(df_snapshot.iloc[0, 2])
+        kpis['avg_engage_sec'] = avg_sec
         m = int(avg_sec // 60)
         s = int(avg_sec % 60)
         kpis['avg_engage_str'] = f"{m}分{s:02d}秒"
@@ -190,6 +206,13 @@ def parse_ga4_csv(filepath: str) -> dict:
     else:
         kpis['key_events_total'] = 0
         kpis['key_events'] = {}
+
+    if df_snapshot is not None and len(df_snapshot) > 0:
+        kpis['events_total'] = int(df_snapshot.iloc[0, 3])
+    elif df_events is not None:
+        kpis['events_total'] = int(df_events.iloc[:, 1].sum())
+    else:
+        kpis['events_total'] = 0
 
     # ── 高度解析用KPI ──
 
@@ -1048,10 +1071,12 @@ class ReportCanvas:
         card_h = 28 * mm
         card_labels = ['月間アクティブユーザー', '新規ユーザー', 'セッション数',
                        '平均エンゲージメント時間', '全体CVR', '新規ユーザー比率']
+        sessions_str = "—" if kpis.get('sessions_missing') else f"{kpis['sessions']:,}"
+        cvr_str = "—" if kpis.get('sessions_missing') else f"{kpis['cvr_total']:.1f}%"
         card_values = [
             f"{kpis['active_users']:,}", f"{kpis['new_users']:,}",
-            f"{kpis['sessions']:,}", kpis['avg_engage_str'],
-            f"{kpis['cvr_total']:.1f}%", f"{kpis['new_user_ratio']:.0f}%",
+            sessions_str, kpis['avg_engage_str'],
+            cvr_str, f"{kpis['new_user_ratio']:.0f}%",
         ]
         card_units = ['人', '人', '件', '', '', '']
 
@@ -1077,6 +1102,15 @@ class ReportCanvas:
         self._text(PAGE_W / 2, banner_y - 6 * mm,
                    f"月間キーイベント（コンバージョン）合計:  {kpis['key_events_total']:,}  件",
                    font_size=13, color=COLOR_WHITE, align='center')
+
+        if kpis.get('sessions_missing'):
+            self._text(
+                12 * mm,
+                banner_y - 16 * mm,
+                "※このCSV形式にはセッション/チャネル/キーイベント内訳が含まれないため、一部指標は「—」表示です。",
+                font_size=7.5,
+                color=COLOR_GRAY,
+            )
 
         if daily_chart_bytes:
             chart_y = banner_y - 18 * mm
@@ -1310,10 +1344,12 @@ class ReportCanvas:
         form_start = kpis.get('form_start', 0)
         form_submit = kpis.get('form_submit', 0)
         form_start_rate = kpis.get('form_start_to_submit', 0)
+        sessions_for_text = "—" if kpis.get('sessions_missing') else f"{kpis['sessions']:,}"
+        cvr_for_text = "—" if kpis.get('sessions_missing') else f"{kpis['cvr_total']:.1f}%"
 
         insights = [
-            f"・全体CVR {kpis['cvr_total']:.1f}%",
-            f"  （キーイベント{kpis['key_events_total']:,}件 ÷ セッション{kpis['sessions']:,}）",
+            f"・全体CVR {cvr_for_text}",
+            f"  （キーイベント{kpis['key_events_total']:,}件 ÷ セッション{sessions_for_text}）",
             f"・フォームページ閲覧→完了率 {kpis['form_completion_rate']:.1f}%",
             "",
             "【フォーム操作の離脱分析】",
