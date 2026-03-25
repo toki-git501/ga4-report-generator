@@ -335,6 +335,15 @@ def fig_to_bytes(fig) -> bytes:
     return buf.read()
 
 
+def safe_chart(fn, *args, **kwargs):
+    """チャート生成エラー時はNoneを返して処理継続する。"""
+    try:
+        return fn(*args, **kwargs)
+    except Exception as e:
+        print(f"[WARN] {fn.__name__} をスキップ: {e}")
+        return None
+
+
 def make_daily_line_chart(df_active, df_new, month_label: str, width_inch=9, height_inch=3) -> bytes:
     """日別アクティブ・新規ユーザー折れ線グラフ"""
     if df_active is None and df_new is None:
@@ -1536,23 +1545,27 @@ def generate_report(csv_path: str, output_path: str,
           f"  キーイベント: {kpis['key_events_total']:,}")
 
     print("[3/8] 標準チャートを生成中...")
-    daily_chart   = make_daily_line_chart(data['df_active'], data['df_new'], meta['month_label'])
-    bar_chart     = make_channel_bar_chart(data['df_ch_ses'])
-    donut_chart   = make_channel_donut_chart(data['df_ch_new'])
-    kev_chart     = make_key_events_bar(kpis['key_events'])
-    pages_chart   = make_top_pages_chart(data['df_pages'], top_n=20)
+    daily_chart   = safe_chart(make_daily_line_chart, data['df_active'], data['df_new'], meta['month_label'])
+    bar_chart     = safe_chart(make_channel_bar_chart, data['df_ch_ses'])
+    donut_chart   = safe_chart(make_channel_donut_chart, data['df_ch_new'])
+    kev_chart     = safe_chart(make_key_events_bar, kpis['key_events'])
+    pages_chart   = safe_chart(make_top_pages_chart, data['df_pages'], top_n=20)
 
     print("[4/8] 高度解析チャートを生成中...")
-    cvr_chart = make_cvr_gauge_chart(kpis['cvr_total'], kpis['cvr_detail'], kpis['sessions'])
-    retention_chart = make_retention_heatmap(data['df_retention'])
-    content_chart = make_content_category_chart(kpis['content_categories'])
-    weekday_chart = make_weekday_chart(data['df_active'], data['df_new'], meta.get('start', ''))
-    new_vs_returning_chart = make_new_vs_returning_chart(kpis['new_users'], kpis['active_users'])
-    paid_social_chart = make_paid_social_chart(data['df_ch_ses'], data['df_ch_new'])
+    cvr_chart = safe_chart(make_cvr_gauge_chart, kpis['cvr_total'], kpis['cvr_detail'], kpis['sessions'])
+    retention_chart = safe_chart(make_retention_heatmap, data['df_retention'])
+    content_chart = safe_chart(make_content_category_chart, kpis['content_categories'])
+    weekday_chart = safe_chart(make_weekday_chart, data['df_active'], data['df_new'], meta.get('start', ''))
+    new_vs_returning_chart = safe_chart(make_new_vs_returning_chart, kpis['new_users'], kpis['active_users'])
+    paid_social_chart = safe_chart(make_paid_social_chart, data['df_ch_ses'], data['df_ch_new'])
     form_funnel_chart = None
     if kpis.get('contact_pv', 0) > 0:
-        form_funnel_chart = make_form_funnel_chart(
-            kpis['contact_pv'], kpis['contact_done_pv'], kpis['form_completion_rate'])
+        form_funnel_chart = safe_chart(
+            make_form_funnel_chart,
+            kpis['contact_pv'],
+            kpis['contact_done_pv'],
+            kpis['form_completion_rate'],
+        )
 
     print("[5/9] PDFを生成中...")
     rc = ReportCanvas(output_path)
