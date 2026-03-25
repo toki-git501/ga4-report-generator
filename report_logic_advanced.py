@@ -180,6 +180,7 @@ def parse_ga4_csv(filepath: str) -> dict:
     else:
         kpis['sessions'] = 0
         kpis['sessions_missing'] = True
+    kpis['channels_missing'] = (df_ch_ses is None or df_ch_new is None)
 
     if df_engage is not None:
         avg_sec = df_engage.iloc[:, 1].mean()
@@ -203,9 +204,11 @@ def parse_ga4_csv(filepath: str) -> dict:
         for _, row in df_kev.iterrows():
             kev_dict[row.iloc[0]] = int(row.iloc[1])
         kpis['key_events'] = kev_dict
+        kpis['key_events_missing'] = False
     else:
         kpis['key_events_total'] = 0
         kpis['key_events'] = {}
+        kpis['key_events_missing'] = True
 
     if df_snapshot is not None and len(df_snapshot) > 0:
         kpis['events_total'] = int(df_snapshot.iloc[0, 3])
@@ -1138,6 +1141,23 @@ class ReportCanvas:
         if donut_bytes:
             self._image_bytes(donut_bytes, col2_x, content_top - 5 * mm, col_w, h=chart_h)
 
+        if kpis.get('channels_missing'):
+            self._rect(12 * mm, content_top - 70 * mm, PAGE_W - 24 * mm, 18 * mm, fill_color=COLOR_CARD_BG)
+            self._text(
+                16 * mm,
+                content_top - 60 * mm,
+                "このCSVにはチャネル別データが含まれていないため、このセクションは表示できません。",
+                font_size=9,
+                color=COLOR_GRAY,
+            )
+            self._text(
+                16 * mm,
+                content_top - 67 * mm,
+                "GA4で「セッションのメインのチャネル グループ」「ユーザーの最初のメインのチャネル グループ」を含む形式で再出力してください。",
+                font_size=8,
+                color=COLOR_GRAY,
+            )
+
         # 下段: エンゲージメント品質指標カード
         breakdown_top = content_top - chart_h - 18 * mm
         self._section_header(col1_x, breakdown_top, 'エンゲージメント品質', 'サイト利用状況')
@@ -1185,6 +1205,25 @@ class ReportCanvas:
         if kev_chart_bytes:
             chart_w = PAGE_W - 20 * mm
             self._image_bytes(kev_chart_bytes, 10 * mm, content_top - 5 * mm, chart_w, h=75 * mm)
+
+        if kpis.get('key_events_missing'):
+            self._rect(10 * mm, content_top - 120 * mm, PAGE_W - 20 * mm, 24 * mm, fill_color=COLOR_CARD_BG)
+            self._text(
+                14 * mm,
+                content_top - 108 * mm,
+                "このCSVには「イベント名,キーイベント」セクションが含まれていないため、コンバージョン内訳は表示できません。",
+                font_size=8.8,
+                color=COLOR_GRAY,
+            )
+            self._text(
+                14 * mm,
+                content_top - 116 * mm,
+                "GA4でキーイベント列を含む形式で再エクスポートしてください。",
+                font_size=8.2,
+                color=COLOR_GRAY,
+            )
+            self._footer(company_name, 4)
+            return
 
         kev = kpis.get('key_events', {})
         sessions = kpis.get('sessions', 0)
