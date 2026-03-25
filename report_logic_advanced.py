@@ -337,15 +337,26 @@ def fig_to_bytes(fig) -> bytes:
 
 def make_daily_line_chart(df_active, df_new, month_label: str, width_inch=9, height_inch=3) -> bytes:
     """日別アクティブ・新規ユーザー折れ線グラフ"""
+    if df_active is None and df_new is None:
+        return None
+
     fig, ax = plt.subplots(figsize=(width_inch, height_inch), facecolor=MPL_BG)
     ax.set_facecolor(MPL_BG)
-    days = df_active.iloc[:, 0].astype(int) + 1
-    ax.plot(days, df_active.iloc[:, 1], color=MPL_PRIMARY, linewidth=2.2, marker='o',
-            markersize=3, label='アクティブユーザー', zorder=3)
-    if df_new is not None:
+
+    if df_active is not None and len(df_active) > 0:
+        days = df_active.iloc[:, 0].astype(int) + 1
+        ax.plot(days, df_active.iloc[:, 1], color=MPL_PRIMARY, linewidth=2.2, marker='o',
+                markersize=3, label='アクティブユーザー', zorder=3)
+        ax.fill_between(days, df_active.iloc[:, 1], alpha=0.12, color=MPL_PRIMARY)
+    elif df_new is not None and len(df_new) > 0:
+        days = df_new.iloc[:, 0].astype(int) + 1
+    else:
+        return None
+
+    if df_new is not None and len(df_new) > 0:
         ax.plot(days, df_new.iloc[:, 1], color=MPL_SECONDARY, linewidth=2, linestyle='--',
                 marker='o', markersize=3, label='新規ユーザー', zorder=3)
-    ax.fill_between(days, df_active.iloc[:, 1], alpha=0.12, color=MPL_PRIMARY)
+
     ax.set_xlim(1, len(days))
     ax.set_xlabel('日', fontsize=9)
     ax.set_ylabel('ユーザー数', fontsize=9)
