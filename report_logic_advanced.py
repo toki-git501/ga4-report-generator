@@ -1534,84 +1534,89 @@ def generate_report(csv_path: str, output_path: str,
                     department: str  = '',
                     logo_path: str   = None) -> str:
     """GA4 CSVからPDFレポート（高度解析版）を生成"""
-    print(f"[1/8] CSVを読み込み中: {csv_path}")
-    data = parse_ga4_csv(csv_path)
-    meta = data['meta']
-    kpis = data['kpis']
+    try:
+        print(f"[1/8] CSVを読み込み中: {csv_path}")
+        data = parse_ga4_csv(csv_path)
+        meta = data['meta']
+        kpis = data['kpis']
 
-    print(f"[2/8] KPI集計完了 | 期間: {meta['month_label']}")
-    print(f"      アクティブUU: {kpis['active_users']:,}  新規UU: {kpis['new_users']:,}"
-          f"  セッション: {kpis['sessions']:,}  CVR: {kpis['cvr_total']:.1f}%"
-          f"  キーイベント: {kpis['key_events_total']:,}")
+        print(f"[2/8] KPI集計完了 | 期間: {meta['month_label']}")
+        print(f"      アクティブUU: {kpis['active_users']:,}  新規UU: {kpis['new_users']:,}"
+              f"  セッション: {kpis['sessions']:,}  CVR: {kpis['cvr_total']:.1f}%"
+              f"  キーイベント: {kpis['key_events_total']:,}")
 
-    print("[3/8] 標準チャートを生成中...")
-    daily_chart   = safe_chart(make_daily_line_chart, data['df_active'], data['df_new'], meta['month_label'])
-    bar_chart     = safe_chart(make_channel_bar_chart, data['df_ch_ses'])
-    donut_chart   = safe_chart(make_channel_donut_chart, data['df_ch_new'])
-    kev_chart     = safe_chart(make_key_events_bar, kpis['key_events'])
-    pages_chart   = safe_chart(make_top_pages_chart, data['df_pages'], top_n=20)
+        print("[3/8] 標準チャートを生成中...")
+        daily_chart   = safe_chart(make_daily_line_chart, data['df_active'], data['df_new'], meta['month_label'])
+        bar_chart     = safe_chart(make_channel_bar_chart, data['df_ch_ses'])
+        donut_chart   = safe_chart(make_channel_donut_chart, data['df_ch_new'])
+        kev_chart     = safe_chart(make_key_events_bar, kpis['key_events'])
+        pages_chart   = safe_chart(make_top_pages_chart, data['df_pages'], top_n=20)
 
-    print("[4/8] 高度解析チャートを生成中...")
-    cvr_chart = safe_chart(make_cvr_gauge_chart, kpis['cvr_total'], kpis['cvr_detail'], kpis['sessions'])
-    retention_chart = safe_chart(make_retention_heatmap, data['df_retention'])
-    content_chart = safe_chart(make_content_category_chart, kpis['content_categories'])
-    weekday_chart = safe_chart(make_weekday_chart, data['df_active'], data['df_new'], meta.get('start', ''))
-    new_vs_returning_chart = safe_chart(make_new_vs_returning_chart, kpis['new_users'], kpis['active_users'])
-    paid_social_chart = safe_chart(make_paid_social_chart, data['df_ch_ses'], data['df_ch_new'])
-    form_funnel_chart = None
-    if kpis.get('contact_pv', 0) > 0:
-        form_funnel_chart = safe_chart(
-            make_form_funnel_chart,
-            kpis['contact_pv'],
-            kpis['contact_done_pv'],
-            kpis['form_completion_rate'],
-        )
+        print("[4/8] 高度解析チャートを生成中...")
+        cvr_chart = safe_chart(make_cvr_gauge_chart, kpis['cvr_total'], kpis['cvr_detail'], kpis['sessions'])
+        retention_chart = safe_chart(make_retention_heatmap, data['df_retention'])
+        content_chart = safe_chart(make_content_category_chart, kpis['content_categories'])
+        weekday_chart = safe_chart(make_weekday_chart, data['df_active'], data['df_new'], meta.get('start', ''))
+        new_vs_returning_chart = safe_chart(make_new_vs_returning_chart, kpis['new_users'], kpis['active_users'])
+        paid_social_chart = safe_chart(make_paid_social_chart, data['df_ch_ses'], data['df_ch_new'])
+        form_funnel_chart = None
+        if kpis.get('contact_pv', 0) > 0:
+            form_funnel_chart = safe_chart(
+                make_form_funnel_chart,
+                kpis['contact_pv'],
+                kpis['contact_done_pv'],
+                kpis['form_completion_rate'],
+            )
 
-    print("[5/9] PDFを生成中...")
-    rc = ReportCanvas(output_path)
+        print("[5/9] PDFを生成中...")
+        rc = ReportCanvas(output_path)
 
-    # P1: 表紙
-    rc.draw_cover(meta, company_name, department, logo_path)
-    rc.new_page()
+        # P1: 表紙
+        rc.draw_cover(meta, company_name, department, logo_path)
+        rc.new_page()
 
-    # P2: サマリ
-    rc.draw_summary(meta, kpis, daily_chart, company_name)
-    rc.new_page()
+        # P2: サマリ
+        rc.draw_summary(meta, kpis, daily_chart, company_name)
+        rc.new_page()
 
-    # P3: チャネル分析
-    rc.draw_channels(meta, kpis, bar_chart, donut_chart, company_name)
-    rc.new_page()
+        # P3: チャネル分析
+        rc.draw_channels(meta, kpis, bar_chart, donut_chart, company_name)
+        rc.new_page()
 
-    # P4: キーイベント
-    rc.draw_key_events(meta, kpis, kev_chart, company_name)
-    rc.new_page()
+        # P4: キーイベント
+        rc.draw_key_events(meta, kpis, kev_chart, company_name)
+        rc.new_page()
 
-    # P5: 上位ページ
-    rc.draw_pages(meta, pages_chart, data['df_pages'], company_name)
-    rc.new_page()
+        # P5: 上位ページ
+        rc.draw_pages(meta, pages_chart, data['df_pages'], company_name)
+        rc.new_page()
 
-    # P6: CVR分析
-    rc.draw_cvr_analysis(kpis, cvr_chart, form_funnel_chart, company_name)
-    rc.new_page()
+        # P6: CVR分析
+        rc.draw_cvr_analysis(kpis, cvr_chart, form_funnel_chart, company_name)
+        rc.new_page()
 
-    # P7: ユーザー分析（リテンション）
-    rc.draw_user_analysis(kpis, retention_chart, new_vs_returning_chart, company_name)
-    rc.new_page()
+        # P7: ユーザー分析（リテンション）
+        rc.draw_user_analysis(kpis, retention_chart, new_vs_returning_chart, company_name)
+        rc.new_page()
 
-    # P8: コンテンツ・曜日分析
-    rc.draw_content_and_weekday(kpis, content_chart, weekday_chart, company_name)
-    rc.new_page()
+        # P8: コンテンツ・曜日分析
+        rc.draw_content_and_weekday(kpis, content_chart, weekday_chart, company_name)
+        rc.new_page()
 
-    # P9: Paid Social分析
-    rc.draw_paid_social(kpis, paid_social_chart, data['df_ch_ses'], data['df_ch_new'], company_name)
-    rc.new_page()
+        # P9: Paid Social分析
+        rc.draw_paid_social(kpis, paid_social_chart, data['df_ch_ses'], data['df_ch_new'], company_name)
+        rc.new_page()
 
-    # P10: 計測定義・注記
-    rc.draw_notes(meta, kpis, company_name)
+        # P10: 計測定義・注記
+        rc.draw_notes(meta, kpis, company_name)
 
-    rc.save()
-    print(f"[6/9] PDF保存完了: {output_path}")
-    return output_path
+        rc.save()
+        print(f"[6/9] PDF保存完了: {output_path}")
+        return output_path
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        raise RuntimeError(f"詳細版レポート生成で失敗: {e}") from e
 
 
 # ─────────────────────────────────────────────────────

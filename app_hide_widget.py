@@ -7,6 +7,8 @@ from datetime import datetime
 from report_logic import generate_report
 from report_logic_advanced import generate_report as generate_report_advanced
 
+APP_VERSION = "2026-03-26-3"
+
 # ─────────────────────────────────────────────────────
 # アイコン画像パス
 # ─────────────────────────────────────────────────────
@@ -223,9 +225,8 @@ with col2:
                     st.session_state['pdf_ready'] = True
                     st.rerun()
                 except Exception as e:
-                    st.error(f"エラーが発生しました: {e}")
-                    with st.expander("詳細エラー情報"):
-                        st.code(traceback.format_exc())
+                    st.error(f"エラーが発生しました (v{APP_VERSION}): {e}")
+                    st.code(traceback.format_exc())
 
         # 生成済みPDFがあれば表示
         if st.session_state.get('pdf_ready'):
@@ -252,4 +253,4 @@ if st.session_state.get('pdf_ready'):
     display_pdf(st.session_state['pdf_data'])
 
 st.divider()
-st.caption("© 2026 MOCAL株式会社 | GA4 Report Automation")
+st.caption(f"© 2026 MOCAL株式会社 | GA4 Report Automation | v{APP_VERSION}")
