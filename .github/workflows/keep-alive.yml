@@ -1,0 +1,23 @@
+name: Keep HF Space Alive
+
+on:
+  schedule:
+    # 12時間ごとにアクセス（UTC 0:00 と 12:00）
+    - cron: '0 0,12 * * *'
+  workflow_dispatch: # 手動実行も可能
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping HuggingFace Space
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://toki-501-ga4-report-generator.hf.space")
+          echo "HTTP Status: $STATUS"
+          if [ "$STATUS" = "500" ] || [ "$STATUS" = "502" ] || [ "$STATUS" = "503" ]; then
+            echo "Space is sleeping, sending wake-up request..."
+            curl -s "https://toki-501-ga4-report-generator.hf.space" > /dev/null
+            sleep 60
+            STATUS2=$(curl -s -o /dev/null -w "%{http_code}" "https://toki-501-ga4-report-generator.hf.space")
+            echo "After wake-up: HTTP Status: $STATUS2"
+          fi
